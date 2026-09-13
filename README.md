@@ -14,7 +14,9 @@ A single-page short-term memory trainer. A sequence of digits is shown together 
 
 ## Running locally
 
-No build step or dependencies — just open [index.html](index.html) in a browser.
+No build step — just open [index.html](index.html) in a browser. Game logic and event wiring are written in [_hyperscript](https://hyperscript.org/), loaded from a CDN, with a couple of small plain-JS helpers.
+
+The original vanilla-JS implementation (no hyperscript dependency) is kept at [index-vanilla.html](index-vanilla.html).
 
 ## Deployment
 

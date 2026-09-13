@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digit Span — Short-Term Memory Trainer</title>
+<style>
+  :root {
+    --bg: #f5f6fa;
+    --panel: #ffffff;
+    --text: #1c1e26;
+    --muted: #6b7280;
+    --accent: #4f46e5;
+    --accent-dim: #eef0ff;
+    --good: #16a34a;
+    --bad: #dc2626;
+    --border: #e2e4ea;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14151c;
+      --panel: #1d1f29;
+      --text: #eceef3;
+      --muted: #9aa0ad;
+      --accent: #818cf8;
+      --accent-dim: #262a3f;
+      --good: #4ade80;
+      --bad: #f87171;
+      --border: #2c2f3d;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 24px 16px 48px;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; font-size: 0.95rem; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .game-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .game-head h2 { margin: 0; font-size: 1.15rem; }
+  .stat { font-size: 0.85rem; color: var(--muted); }
+  .stat b { color: var(--text); }
+
+  .desc { color: var(--muted); font-size: 0.88rem; margin: 0 0 20px; line-height: 1.4; }
+
+  .stage {
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .btn-row { display: flex; gap: 10px; }
+
+  button.primary {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button.primary:disabled { opacity: 0.5; cursor: default; }
+  button.ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+
+  .flash-digit {
+    font-size: 3.5rem;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: var(--accent);
+    min-height: 70px;
+  }
+
+  input[type="text"] {
+    font-size: 1.3rem;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    text-align: center;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 64px);
+    gap: 8px;
+    margin: 14px auto 0;
+    width: max-content;
+  }
+  .key {
+    height: 52px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .key:active { background: var(--accent-dim); }
+
+  .result {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .result.good { color: var(--good); }
+  .result.bad { color: var(--bad); }
+
+  .footer-note { text-align: center; color: var(--muted); font-size: 0.78rem; margin-top: 28px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Digit Span</h1>
+  <p class="sub">A quick exercise for short-term memory. Your best score is saved locally in this browser.</p>
+
+  <section class="panel" id="panel-digit">
+    <div class="game-head">
+      <h2>Digit Span</h2>
+      <div class="stat">Best: <b id="digit-best">0</b></div>
+    </div>
+    <p class="desc">Study the digits shown together, then type them back in the same order. Each success adds one more digit.</p>
+    <div class="stage">
+      <div class="stat">Current length: <b id="digit-length">2</b></div>
+      <div class="flash-digit" id="digit-flash"></div>
+      <div id="digit-input-area" hidden>
+        <input type="text" id="digit-input" inputmode="numeric" placeholder="Type or tap the sequence" autocomplete="off">
+        <div class="keypad" id="digit-keypad">
+          <button type="button" class="key" data-key="1">1</button>
+          <button type="button" class="key" data-key="2">2</button>
+          <button type="button" class="key" data-key="3">3</button>
+          <button type="button" class="key" data-key="4">4</button>
+          <button type="button" class="key" data-key="5">5</button>
+          <button type="button" class="key" data-key="6">6</button>
+          <button type="button" class="key" data-key="7">7</button>
+          <button type="button" class="key" data-key="8">8</button>
+          <button type="button" class="key" data-key="9">9</button>
+          <button type="button" class="key" data-key="back">⌫</button>
+          <button type="button" class="key" data-key="0">0</button>
+          <button type="button" class="key" data-key="clear">Clear</button>
+        </div>
+      </div>
+      <div class="result" id="digit-result"></div>
+      <div class="btn-row">
+        <button class="primary" id="digit-start">Start</button>
+        <button class="ghost" id="digit-submit" hidden>Submit</button>
+        <button class="ghost" id="digit-restart">Restart</button>
+      </div>
+    </div>
+  </section>
+
+  <p class="footer-note">Built for short-term memory practice · all data stays in your browser</p>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const wait = ms => new Promise(res => setTimeout(res, ms));
+  const rand = n => Math.floor(Math.random() * n);
+  const loadBest = key => Number(localStorage.getItem(key) || 0);
+  const saveBest = (key, val) => localStorage.setItem(key, String(val));
+
+  const BEST_KEY = "stm_digitspan_best";
+  let length = 2;
+  let sequence = [];
+  let roundToken = 0;
+
+  const bestEl = document.getElementById("digit-best");
+  const lengthEl = document.getElementById("digit-length");
+  const flashEl = document.getElementById("digit-flash");
+  const inputArea = document.getElementById("digit-input-area");
+  const inputEl = document.getElementById("digit-input");
+  const resultEl = document.getElementById("digit-result");
+  const startBtn = document.getElementById("digit-start");
+  const submitBtn = document.getElementById("digit-submit");
+  const restartBtn = document.getElementById("digit-restart");
+  const keypadEl = document.getElementById("digit-keypad");
+
+  bestEl.textContent = loadBest(BEST_KEY);
+
+  function genSequence(len) {
+    const seq = [];
+    for (let i = 0; i < len; i++) {
+      let digit;
+      do {
+        digit = rand(10);
+      } while (i > 0 && digit === seq[i - 1]);
+      seq.push(digit);
+    }
+    return seq;
+  }
+
+  async function playRound() {
+    const token = ++roundToken;
+    resultEl.textContent = "";
+    resultEl.className = "result";
+    lengthEl.textContent = length;
+    inputArea.hidden = true;
+    submitBtn.hidden = true;
+    startBtn.disabled = true;
+
+    sequence = genSequence(length);
+
+    flashEl.style.fontSize = "";
+    flashEl.textContent = "Get ready…";
+    await wait(700);
+    if (token !== roundToken) return;
+
+    flashEl.style.fontSize = length > 7 ? "2.2rem" : length > 5 ? "2.8rem" : "";
+    flashEl.textContent = sequence.join("  ");
+    const studyTime = 900 + length * 650;
+    await wait(studyTime);
+    if (token !== roundToken) return;
+
+    flashEl.style.fontSize = "";
+    flashEl.textContent = "";
+    inputEl.value = "";
+    inputArea.hidden = false;
+    submitBtn.hidden = false;
+    startBtn.disabled = true;
+    inputEl.focus();
+  }
+
+  function checkAnswer() {
+    const guess = inputEl.value.trim();
+    const correct = guess === sequence.join("");
+    inputArea.hidden = true;
+    submitBtn.hidden = true;
+    startBtn.disabled = false;
+
+    if (correct) {
+      resultEl.textContent = "Correct! Sequence grows to " + (length + 1) + ".";
+      resultEl.className = "result good";
+      length += 1;
+      const best = loadBest(BEST_KEY);
+      if (length - 1 > best) {
+        saveBest(BEST_KEY, length - 1);
+        bestEl.textContent = length - 1;
+      }
+      startBtn.textContent = "Next Round";
+      playRound();
+    } else {
+      length = Math.max(1, length - 1);
+      resultEl.textContent = "Not quite — it was " + sequence.join("") + ". Next round drops to length " + length + ".";
+      resultEl.className = "result bad";
+      startBtn.textContent = "Start";
+      lengthEl.textContent = length;
+    }
+  }
+
+  function resetGame() {
+    roundToken++;
+    length = 2;
+    sequence = [];
+    lengthEl.textContent = length;
+    flashEl.style.fontSize = "";
+    flashEl.textContent = "";
+    inputArea.hidden = true;
+    submitBtn.hidden = true;
+    resultEl.textContent = "";
+    resultEl.className = "result";
+    startBtn.disabled = false;
+    startBtn.textContent = "Start";
+  }
+
+  startBtn.addEventListener("click", () => {
+    playRound();
+  });
+  submitBtn.addEventListener("click", checkAnswer);
+  restartBtn.addEventListener("click", resetGame);
+  inputEl.addEventListener("keydown", e => {
+    if (e.key === "Enter") checkAnswer();
+  });
+
+  keypadEl.addEventListener("click", e => {
+    const btn = e.target.closest(".key");
+    if (!btn) return;
+    const key = btn.dataset.key;
+    if (key === "back") {
+      inputEl.value = inputEl.value.slice(0, -1);
+    } else if (key === "clear") {
+      inputEl.value = "";
+    } else {
+      inputEl.value += key;
+    }
+    inputEl.focus();
+  });
+})();
+</script>
+</body>
+</html>
